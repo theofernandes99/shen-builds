@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Builds de Shen top selon l'adversaire et la compo adverse : runes, sorts, objets, conseils.">
+<meta name="theme-color" content="#0a0e1c">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Shen">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<title>Builds Shen top</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Marcellus+SC&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Univers unique : crépuscule Kinkou. Fond nuit, accent lame spirituelle, or pour les objets. */
+  /* Mise en page : sélecteur d'adversaire à gauche (en haut sur mobile), fiche de build à droite. */
+  --bg: #0a0e1c;
+  --panel: #111731;
+  --panel-2: #161d3c;
+  --line: #262f55;
+  --ink: #e8eaf4;
+  --muted: #9ba2c2;
+  --spirit: #72d4ff;
+  --gold: #cfae67;
+  --font-display: "Marcellus SC", "Cormorant SC", Georgia, serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --radius: 10px;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45; }
+img { max-width: 100%; display: block; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--spirit); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--font-display); font-weight: 400; text-wrap: balance; margin: 0; letter-spacing: .02em; }
+
+.app { max-width: 1280px; margin: 0 auto; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); display: grid; gap: 16px; }
+.top { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.top .shen { width: 44px; height: 44px; border-radius: 50%; border: 2px solid var(--spirit); box-shadow: 0 0 14px rgba(114,212,255,.35); }
+.top h1 { font-size: 1.5rem; }
+.top .patch { margin-left: auto; font-size: .8rem; color: var(--muted); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+
+.layout { display: grid; gap: 16px; grid-template-columns: 1fr; align-items: start; }
+@media (min-width: 960px) {
+  .layout { grid-template-columns: minmax(340px, 400px) 1fr; }
+  .picker { position: sticky; top: max(16px, env(safe-area-inset-top)); max-height: calc(100dvh - 32px - env(safe-area-inset-top)); }
+}
+
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+
+/* Sélecteur */
+.picker { display: flex; flex-direction: column; overflow: hidden; }
+.picker-head { padding: 14px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.picker-head label { font-size: .85rem; color: var(--muted); }
+.search { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); font: inherit; font-size: 16px; }
+.search::placeholder { color: #6c7396; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 4px 10px; font-size: .8rem; cursor: pointer; display: inline-flex; gap: 6px; align-items: center; color: var(--muted); }
+.chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--c, var(--muted)); }
+.chip[aria-pressed="true"] { color: var(--ink); border-color: var(--c, var(--spirit)); background: color-mix(in srgb, var(--c, var(--spirit)) 16%, transparent); }
+.chip .n { font-variant-numeric: tabular-nums; opacity: .7; }
+.grid { overflow-y: auto; padding: 12px; display: grid; grid-template-columns: repeat(auto-fill, minmax(62px, 1fr)); gap: 10px 6px; max-height: 300px; }
+@media (min-width: 960px) { .grid { max-height: none; flex: 1; } }
+.champ { background: none; border: 0; padding: 0; cursor: pointer; display: grid; justify-items: center; gap: 4px; }
+.champ img { width: 50px; height: 50px; border-radius: 8px; border: 2px solid var(--c, var(--line)); }
+.champ span { font-size: .72rem; color: var(--muted); text-align: center; line-height: 1.15; overflow-wrap: anywhere; }
+.champ[aria-current="true"] img { outline: 2px solid var(--spirit); outline-offset: 2px; box-shadow: 0 0 12px rgba(114,212,255,.5); }
+.champ[aria-current="true"] span { color: var(--ink); font-weight: 600; }
+.empty { color: var(--muted); font-size: .9rem; padding: 8px; grid-column: 1 / -1; }
+
+/* Fiche */
+.sheet { display: grid; gap: 16px; }
+.hero { padding: 16px; display: grid; gap: 12px; }
+.vs { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.vs .enemy { width: 72px; height: 72px; border-radius: 12px; border: 2px solid var(--c); }
+.vs h2 { font-size: 1.7rem; line-height: 1.1; }
+.vs .sub { color: var(--muted); font-size: .9rem; }
+.tags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.tag { font-size: .75rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--ink); }
+.tag.cat { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); }
+.tag.heal { border-color: #5ec27a; color: #9be3ae; }
+.buildname { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; padding-top: 10px; border-top: 1px solid var(--line); }
+.buildname .label { font-size: .8rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; }
+.buildname h3 { font-size: 1.45rem; color: var(--spirit); }
+.buildname .bt { color: var(--muted); }
+.why { margin: 0; max-width: 70ch; }
+.note { margin: 0; padding: 10px 12px; border-left: 3px solid var(--gold); background: color-mix(in srgb, var(--gold) 10%, transparent); border-radius: 0 8px 8px 0; max-width: 70ch; }
+.note b { color: var(--gold); }
+.preview { font-size: .85rem; color: var(--gold); display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.linkbtn { background: none; border: 0; padding: 0; color: var(--spirit); text-decoration: underline; cursor: pointer; font-size: .85rem; }
+.reclass { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; font-size: .85rem; color: var(--muted); }
+.reclass select { background: var(--bg); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; padding: 4px 6px; font: inherit; font-size: .85rem; }
+
+.cards { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 720px) { .cards { grid-template-columns: 1fr 1fr; } .span2 { grid-column: 1 / -1; } }
+.card { padding: 14px 16px; display: grid; gap: 12px; align-content: start; }
+.card h3 { font-size: 1.05rem; color: var(--gold); display: flex; align-items: center; gap: 8px; }
+.card h3 .k { font-family: var(--font-body); font-size: .75rem; color: var(--muted); font-weight: 500; letter-spacing: 0; }
+
+/* Runes */
+.tree { display: grid; gap: 8px; }
+.treehead { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: .9rem; }
+.treehead img { width: 22px; height: 22px; }
+.rune-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.rune { display: grid; justify-items: center; gap: 4px; width: 78px; text-align: center; }
+.rune img { width: 40px; height: 40px; border-radius: 50%; background: #070a15; border: 1px solid var(--line); }
+.rune.key img { width: 58px; height: 58px; border: 2px solid var(--gold); }
+@media (max-width: 420px) { .rune-row { gap: 6px; } .rune { width: 70px; } }
+.rune span { font-size: .72rem; line-height: 1.15; color: var(--ink); }
+.shards { display: flex; gap: 12px; flex-wrap: wrap; }
+.shard { display: flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--muted); }
+.shard img { width: 22px; height: 22px; border-radius: 50%; background: #070a15; padding: 2px; border: 1px solid var(--line); }
+details { font-size: .85rem; color: var(--muted); }
+details summary { cursor: pointer; color: var(--spirit); }
+details ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 6px; }
+details li b { color: var(--ink); font-weight: 600; }
+
+/* Sorts et compétences */
+.sums { display: flex; gap: 12px; }
+.sum { display: flex; align-items: center; gap: 8px; font-size: .9rem; }
+.sum img { width: 40px; height: 40px; border-radius: 8px; border: 1px solid var(--gold); }
+.prio { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: .85rem; }
+.prio img { width: 34px; height: 34px; border-radius: 6px; border: 1px solid var(--line); }
+.prio .arrow { color: var(--muted); }
+.prio .key { display: grid; justify-items: center; gap: 2px; font-size: .7rem; color: var(--muted); }
+.levels-wrap { overflow-x: auto; }
+table.levels { border-collapse: separate; border-spacing: 2px; font-size: .72rem; font-variant-numeric: tabular-nums; }
+table.levels th { color: var(--muted); font-weight: 500; padding: 0 2px; }
+table.levels th.row { text-align: left; padding-right: 6px; color: var(--ink); }
+table.levels td { width: 20px; height: 20px; text-align: center; border-radius: 4px; background: var(--panel-2); color: transparent; }
+table.levels td.on { background: color-mix(in srgb, var(--spirit) 70%, #0a0e1c); color: #06101c; font-weight: 700; }
+table.levels td.on.r { background: var(--gold); }
+
+/* Objets */
+.start { display: flex; gap: 8px; align-items: center; font-size: .85rem; color: var(--muted); flex-wrap: wrap; }
+.start img { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--line); }
+.items { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; counter-reset: it; }
+.item { display: grid; grid-template-columns: 22px 44px 1fr auto; gap: 10px; align-items: center; padding: 8px; border-radius: 8px; background: var(--panel-2); }
+.item::before { counter-increment: it; content: counter(it); font-family: var(--font-display); color: var(--muted); text-align: center; font-size: 1rem; }
+.item img { width: 44px; height: 44px; border-radius: 6px; border: 1px solid var(--gold); }
+.item .nm { font-weight: 600; font-size: .92rem; }
+.item .wy { font-size: .8rem; color: var(--muted); }
+.item .gd { font-size: .8rem; color: var(--gold); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.item.boots { background: transparent; border: 1px dashed var(--line); }
+.total { display: flex; justify-content: space-between; font-size: .85rem; color: var(--muted); padding-top: 6px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.total b { color: var(--gold); }
+.antiheal { display: flex; gap: 10px; align-items: center; padding: 8px 10px; border-radius: 8px; border: 1px solid #3f7d52; background: rgba(94,194,122,.08); font-size: .85rem; }
+.antiheal img { width: 32px; height: 32px; border-radius: 6px; }
+
+/* Conseils et variantes */
+.tips { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.variants { display: grid; gap: 10px; }
+.variant { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.variant:last-child { border-bottom: 0; padding-bottom: 0; }
+.variant .cond { font-weight: 600; font-size: .9rem; }
+.variant .txt { font-size: .82rem; color: var(--muted); }
+.variant .ic { display: flex; gap: 4px; }
+.variant .ic img { width: 32px; height: 32px; border-radius: 6px; border: 1px solid var(--line); }
+.others { display: flex; gap: 8px; flex-wrap: wrap; }
+.others .chip { font-size: .82rem; }
+.foot { font-size: .78rem; color: var(--muted); max-width: 80ch; }
+/* Mode compo */
+.mode { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; font-size: .8rem; color: var(--muted); }
+.mode span { flex-basis: 100%; }
+.mode button { border: 1px solid var(--line); background: var(--bg); border-radius: 8px; padding: 6px 10px; cursor: pointer; font-size: .82rem; color: var(--muted); }
+.mode button[aria-pressed="true"] { color: var(--ink); border-color: var(--spirit); background: color-mix(in srgb, var(--spirit) 14%, var(--bg)); }
+.slots { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.slot { width: 40px; height: 40px; border-radius: 8px; border: 1px dashed var(--line); background: var(--bg); padding: 0; position: relative; cursor: pointer; display: grid; place-items: center; color: var(--muted); font-size: .9rem; }
+.slot img { width: 100%; height: 100%; border-radius: 7px; }
+.slot.lane { border: 2px solid var(--spirit); cursor: default; }
+.slot.filled { border: 2px solid var(--gold); }
+.slot.filled::after { content: "×"; position: absolute; top: -6px; right: -6px; width: 16px; height: 16px; border-radius: 50%; background: var(--panel); border: 1px solid var(--line); font-size: 12px; line-height: 14px; text-align: center; color: var(--ink); }
+.slot-label { font-size: .72rem; color: var(--muted); }
+.msg { font-size: .8rem; color: var(--gold); min-height: 1.1em; margin: 0; }
+.champ.inteam img { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold); }
+.champ.inteam span::before { content: "✓ "; color: var(--gold); }
+.compo { padding: 14px 16px; display: grid; gap: 12px; }
+.compo-slots { display: flex; gap: 6px; flex-wrap: wrap; }
+.compo-slots .m { display: grid; justify-items: center; gap: 3px; width: 54px; font-size: .7rem; color: var(--muted); text-align: center; line-height: 1.15; }
+.compo-slots .m img, .compo-slots .m .ph { width: 46px; height: 46px; border-radius: 8px; border: 2px solid var(--gold); }
+.compo-slots .m.lane img { border-color: var(--spirit); }
+.compo-slots .m .ph { border: 1px dashed var(--line); background: var(--bg); }
+.split { display: grid; gap: 6px; }
+.bar { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--panel-2); }
+.bar .ad { background: #e0805a; }
+.bar .ap { background: #8f7cf0; }
+.bar-legend { display: flex; justify-content: space-between; font-size: .8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.bar-legend b { color: var(--ink); }
+.stats { display: flex; gap: 6px; flex-wrap: wrap; }
+.stat { font-size: .78rem; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); font-variant-numeric: tabular-nums; }
+.stat.hot { color: var(--ink); border-color: var(--gold); background: color-mix(in srgb, var(--gold) 12%, transparent); }
+.changes { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+.changes li { display: flex; gap: 8px; align-items: center; font-size: .85rem; flex-wrap: wrap; }
+.changes img { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line); }
+.changes .to { border-color: var(--gold); }
+.changes .why, .changes .arrow { color: var(--muted); }
+.suggest { padding: 10px 12px; border-radius: 8px; border: 1px solid var(--spirit); background: color-mix(in srgb, var(--spirit) 8%, transparent); font-size: .85rem; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btnrow { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { border: 1px solid var(--line); background: var(--panel-2); border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: .85rem; }
+.btn.primary { border-color: var(--spirit); color: var(--spirit); }
+.badge { font-size: .68rem; padding: 1px 6px; border-radius: 999px; background: var(--gold); color: #1a1405; font-weight: 700; margin-left: 6px; vertical-align: 1px; }
+.item.team { box-shadow: inset 3px 0 0 var(--gold); }
+@media (prefers-reduced-motion: no-preference) { .sheet { animation: in .25s ease-out; } @keyframes in { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <img class="shen" id="shenIcon" alt="Shen">
+    <h1>Builds Shen top</h1>
+    <span class="patch" id="patch"></span>
+  </header>
+  <div class="layout">
+    <section class="panel picker" aria-label="Choisir l'adversaire">
+      <div class="picker-head">
+        <label for="q">Contre quel champion joues-tu ?</label>
+        <input id="q" class="search" type="search" placeholder="Rechercher : Fiora, Darius…" autocomplete="off">
+        <div class="mode" role="group" aria-label="Que fait un clic sur un champion ?">
+          <span>Un clic choisit :</span>
+          <button id="modeLane" aria-pressed="true">Adversaire de lane</button>
+          <button id="modeTeam" aria-pressed="false">Reste de l'équipe</button>
+        </div>
+        <div class="slots" id="slots" aria-label="Compo adverse"></div>
+        <p class="msg" id="msg" aria-live="polite"></p>
+        <div class="chips" id="filters" role="group" aria-label="Filtrer par catégorie"></div>
+      </div>
+      <div class="grid" id="grid"></div>
+    </section>
+    <main class="sheet" id="sheet" aria-live="polite"></main>
+  </div>
+  <p class="foot">Données et icônes : Riot Games (Data Dragon, patch <span id="patch2"></span>). Builds issus de notre analyse, sans garantie de taux de victoire. Classement des champions modifiable : il est enregistré dans ce navigateur.</p>
+</div>
+<script>
+const D = __DATA__;
+const IC = __ICONS__;
+const CAT_COLOR = { auto: '#e8a34b', brawler: '#e0645a', poke: '#4fc3b0', ap: '#a98bf0', tank: '#8fa1bd', squishy: '#ef8fbf', assassin: '#7fcf6b' };
+const DMG_LABEL = { AD: 'Dégâts physiques', AP: 'Dégâts magiques', mixte: 'Dégâts mixtes' };
+const LEVELS = 'QEWQQRQEQEREEWWRWW';
+const SPELL_KEYS = [['Q', 'ShenQ'], ['W', 'ShenW'], ['E', 'ShenE'], ['R', 'ShenR']];
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('shenapp.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('shenapp.' + k, JSON.stringify(v)); } catch (e) {} },
+};
+let overrides = store.get('overrides', {});
+let filter = 'all';
+let current = store.get('last', 'Fiora');
+let preview = null;
+const byId = Object.fromEntries(D.champs.map(c => [c.id, c]));
+if (!byId[current]) current = 'Fiora';
+let team = store.get('team', []).filter(id => byId[id] && id !== current).slice(0, 4);
+let mode = 'lane';
+
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+const norm = s => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+const catOf = c => overrides[c.id] || c.cat;
+const img = (key, alt, cls) => `<img src="${IC[key] || ''}" alt="${esc(alt)}"${cls ? ` class="${cls}"` : ''} width="64" height="64">`;
+const gold = n => n.toLocaleString('fr-FR') + ' PO';
+
+function renderFilters() {
+  const counts = {};
+  D.champs.forEach(c => { const k = catOf(c); counts[k] = (counts[k] || 0) + 1; });
+  const btn = (key, label, n, color) => `<button class="chip" data-f="${key}" aria-pressed="${filter === key}" style="--c:${color || 'var(--spirit)'}">${color ? '<span class="dot"></span>' : ''}${esc(label)} <span class="n">${n}</span></button>`;
+  document.getElementById('filters').innerHTML = btn('all', 'Tous', D.champs.length) +
+    Object.entries(D.cats).map(([k, c]) => btn(k, c.short, counts[k] || 0, CAT_COLOR[k])).join('');
+}
+
+function renderGrid() {
+  const q = norm(document.getElementById('q').value);
+  const list = D.champs.filter(c => (filter === 'all' || catOf(c) === filter) && (!q || norm(c.name).includes(q) || norm(c.id).includes(q)));
+  document.getElementById('grid').innerHTML = list.length ? list.map(c =>
+    `<button class="champ${team.includes(c.id) ? ' inteam' : ''}" data-id="${c.id}" aria-current="${c.id === current}" style="--c:${CAT_COLOR[catOf(c)]}" title="${esc(c.name)} : ${esc(D.cats[catOf(c)].short)}">${img('c_' + c.id, c.name)}<span>${esc(c.name)}</span></button>`
+  ).join('') : '<p class="empty">Aucun champion ne correspond. Vérifie l\'orthographe ou repasse sur « Tous ».</p>';
+}
+
+function itemsFor(buildKey, cat, dmg) {
+  const b = D.builds[buildKey];
+  const raw = (D.cats[cat].build === buildKey && D.cats[cat].items) ? D.cats[cat].items : b.items;
+  const out = [];
+  for (const it of raw) {
+    let id = it === 'BOOTS' ? D.boots[dmg] : it === 'DEF' ? (b.def || D.def)[dmg] : it;
+    if (out.some(x => x.id === id)) id = D.fallback.find(f => !out.some(x => x.id === f) && !raw.includes(f));
+    out.push({ id, slot: typeof it === 'string' ? it : null });
+  }
+  return out;
+}
+
+// Compo adverse : l'adversaire de lane + jusqu'à 4 autres ennemis.
+function teamInfo() {
+  const cs = [current, ...team.filter(id => id !== current)].slice(0, 5).map(id => byId[id]);
+  const n = cs.length;
+  const phys = cs.reduce((s, c) => s + (c.dmg === 'AD' ? 1 : c.dmg === 'mixte' ? .5 : 0), 0) / n;
+  return {
+    cs, n, phys, mag: 1 - phys,
+    heal: cs.filter(c => c.heal), cc: cs.filter(c => c.cc), crit: cs.filter(c => c.crit),
+    assassins: cs.filter(c => catOf(c) === 'assassin'), tanks: cs.filter(c => catOf(c) === 'tank'),
+  };
+}
+
+const names = list => list.map(c => c.name).join(', ');
+
+function adjust(list, T) {
+  const out = list.map(x => ({ ...x }));
+  const changes = [];
+  if (T.n < 2) return { list: out, changes };
+  const has = (id, except) => out.some((x, i) => i !== except && x.id === id);
+  const set = (i, id, why) => {
+    if (i < 0 || out[i].id === id || has(id, i)) return;
+    changes.push({ from: out[i].id, to: id, why });
+    out[i].id = id; out[i].team = why;
+  };
+  const pick = cands => cands.find(id => !out.some(x => x.id === id));
+
+  // Bottes
+  const bi = out.findIndex(x => x.slot === 'BOOTS');
+  if (T.cc.length >= 4) set(bi, 3111, `${T.cc.length} ennemis avec des contrôles durs`);
+  else if (T.n >= 3 && T.mag >= .6) set(bi, 3111, 'équipe surtout magique');
+  else if (T.n >= 3 && T.phys >= .6) set(bi, 3047, 'équipe surtout physique');
+
+  // Objet défensif
+  const di = out.findIndex(x => x.slot === 'DEF');
+  if (di >= 0) {
+    let cands, why;
+    if (T.phys >= .6) {
+      cands = T.crit.length >= 2 ? [3143, 3075, 2502] : [3075, 3143, 2502];
+      why = T.crit.length >= 2 ? `${T.crit.length} ennemis à coups critiques` : 'équipe surtout physique';
+    } else if (T.mag >= .6) {
+      cands = T.mag >= .8 ? [4401, 2504, 3065] : [2504, 4401, 3065];
+      why = 'équipe surtout magique';
+    } else {
+      cands = [6665, 2502, 3065];
+      why = 'dégâts équilibrés : armure et résistance magique';
+    }
+    const id = cands.find(c => c === out[di].id || !has(c, di));
+    if (id) set(di, id, why);
+  }
+
+  // Compo presque entièrement d'un seul type : on remplace les défenses inutiles
+  if (T.n >= 3 && T.phys >= .8) out.forEach((x, i) => { if ([3065, 2504, 4401].includes(x.id)) { const r = pick([2502, 3143, 3075, 6665]); if (r) set(i, r, 'presque aucun dégât magique en face'); } });
+  if (T.n >= 3 && T.mag >= .8) out.forEach((x, i) => { if ([2502, 3143, 3075].includes(x.id)) { const r = pick([3065, 2504, 4401, 6665]); if (r) set(i, r, 'presque aucun dégât physique en face'); } });
+
+  // Anti-soin dès 2 soigneurs
+  if (T.heal.length >= 2) {
+    const apHeal = T.heal.filter(c => c.dmg === 'AP').length;
+    const ah = apHeal > T.heal.length - apHeal ? 6609 : 3075;
+    if (!out.some(x => x.id === ah)) {
+      let ti = -1;
+      for (let i = out.length - 1; i >= 2; i--) if (out[i].slot !== 'DEF' && out[i].slot !== 'BOOTS') { ti = i; break; }
+      set(ti, ah, `${T.heal.length} soigneurs : ${names(T.heal)}`);
+    }
+  }
+  return { list: out, changes };
+}
+
+function renderSlots() {
+  const c = byId[current];
+  let h = `<button class="slot lane" title="Adversaire de lane : ${esc(c.name)}" aria-label="Adversaire de lane : ${esc(c.name)}">${img('c_' + c.id, c.name)}</button>`;
+  for (let i = 0; i < 4; i++) {
+    const id = team[i];
+    h += id ? `<button class="slot filled" data-rm="${id}" aria-label="Retirer ${esc(byId[id].name)}">${img('c_' + id, byId[id].name)}</button>`
+            : `<button class="slot" data-addmode="1" aria-label="Ajouter un ennemi">+</button>`;
+  }
+  h += `<span class="slot-label">${team.length + 1}/5 ennemis</span>`;
+  document.getElementById('slots').innerHTML = h;
+  document.getElementById('modeLane').setAttribute('aria-pressed', mode === 'lane');
+  document.getElementById('modeTeam').setAttribute('aria-pressed', mode === 'team');
+}
+
+function say(t) { document.getElementById('msg').textContent = t; }
+function saveTeam() { store.set('team', team); }
+function setMode(m) {
+  mode = m; renderSlots();
+  say(m === 'team' ? 'Touche les autres ennemis pour les ajouter ou les retirer.' : '');
+}
+
+function runesFor(buildKey, cat) {
+  const b = D.builds[buildKey];
+  const swap = (D.cats[cat].build === buildKey && D.cats[cat].swapRunes) || {};
+  const sw = id => swap[id] || id;
+  return { tree: b.tree, runes: b.runes.map(sw), sec: b.sec, secRunes: b.secRunes.map(sw), shards: b.shards };
+}
+
+function renderSheet() {
+  const c = byId[current];
+  const cat = catOf(c);
+  const C = D.cats[cat];
+  const buildKey = preview || C.build;
+  const B = D.builds[buildKey];
+  const color = CAT_COLOR[cat];
+  const R = runesFor(buildKey, cat);
+  const T = teamInfo();
+  const A = adjust(itemsFor(buildKey, cat, c.dmg), T);
+  const items = A.list;
+  const total = items.reduce((s, x) => s + D.items[x.id].gold, 0) + D.items[1054].gold + D.items[2003].gold;
+  const pct = Math.round(T.phys * 100);
+  const stat = (label, list, hot) => `<span class="stat${list.length >= hot ? ' hot' : ''}" title="${esc(names(list) || 'aucun')}">${label} : ${list.length}</span>`;
+  const sugg = [];
+  if (T.assassins.length >= 2 && buildKey !== 'garde') sugg.push(['garde', `${T.assassins.length} assassins ou plongeurs en face (${names(T.assassins)}) : le build Garde du corps protège mieux ton carry.`]);
+  if (T.tanks.length >= 3 && buildKey !== 'cleaver') sugg.push(['cleaver', `${T.tanks.length} tanks en face (${names(T.tanks)}) : le build Cleaver perce mieux l'armure.`]);
+  const member = (ch, lane) => `<div class="m${lane ? ' lane' : ''}">${img('c_' + ch.id, ch.name)}<span>${lane ? 'Lane' : esc(ch.name)}</span></div>`;
+  const compoCard = `
+  <section class="panel card compo">
+    <h3>Compo adverse <span class="k">${T.n}/5 ennemis</span></h3>
+    <div class="compo-slots">${T.cs.map((ch, i) => member(ch, i === 0)).join('')}${'<div class="m"><div class="ph"></div><span>Libre</span></div>'.repeat(5 - T.n)}</div>
+    ${T.n < 2 ? `<p class="why">Ajoute les autres ennemis : l'appli adaptera tes bottes, tes objets défensifs et l'anti-soin à toute leur équipe, pas seulement à ton adversaire de lane.</p>` : `
+    <div class="split">
+      <div class="bar" role="img" aria-label="${pct} % de dégâts physiques, ${100 - pct} % magiques"><span class="ad" style="width:${pct}%"></span><span class="ap" style="width:${100 - pct}%"></span></div>
+      <div class="bar-legend"><span><b>${pct} %</b> physiques</span><span><b>${100 - pct} %</b> magiques</span></div>
+    </div>
+    <div class="stats">${stat('Soigneurs', T.heal, 2)}${stat('Contrôles durs', T.cc, 4)}${stat('Coups critiques', T.crit, 2)}${stat('Assassins', T.assassins, 2)}${stat('Tanks', T.tanks, 3)}</div>
+    ${A.changes.length ? `<ul class="changes">${A.changes.map(ch => `<li>${img('i_' + ch.from, D.items[ch.from].name)}<span class="arrow">›</span>${img('i_' + ch.to, D.items[ch.to].name, 'to')}<span><b>${esc(D.items[ch.to].name)}</b> à la place de ${esc(D.items[ch.from].name)} <span class="why">(${esc(ch.why)})</span></span></li>`).join('')}</ul>`
+      : '<p class="why">Aucun objet à changer : le build de lane convient déjà à cette compo.</p>'}
+    ${sugg.map(([k, t]) => `<div class="suggest"><span>${esc(t)}</span><button class="linkbtn" data-preview="${k === C.build ? '' : k}">Voir ce build</button></div>`).join('')}`}
+    <div class="btnrow"><button class="btn primary" id="editTeam">${T.n < 2 ? 'Ajouter les ennemis' : 'Modifier la compo'}</button>${team.length ? '<button class="btn" id="clearTeam">Vider la compo</button>' : ''}</div>
+  </section>`;
+  const rune = (id, key) => `<div class="rune${key ? ' key' : ''}" title="${esc(D.runes[id].desc || '')}">${img('r_' + id, D.runes[id].name)}<span>${esc(D.runes[id].name)}</span></div>`;
+  const allRunes = [...R.runes, ...R.secRunes];
+  const healer = T.heal.length === 1 ? T.heal[0] : null;
+  const healItem = healer && healer.dmg === 'AP' ? 6609 : 3075;
+  const isOverridden = !!overrides[c.id];
+  const altKey = c.alt || C.alt;
+
+  const levels = SPELL_KEYS.map(([k, sp]) => `<tr><th class="row" scope="row">${k}</th>${[...LEVELS].map((l, i) => `<td class="${l === k ? 'on' + (k === 'R' ? ' r' : '') : ''}">${l === k ? i + 1 : ''}</td>`).join('')}</tr>`).join('');
+
+  const variants = [
+    ['Équipe adverse surtout AD', [3047, 3143, 3075], 'Coques en acier, Présage de Randuin contre les critiques, Cotte épineuse.'],
+    ['Équipe adverse surtout AP', [3111, 2504, 4401], 'Sandales de Mercure, Rookern kaénique, Force de la nature.'],
+    ['Beaucoup de soins en face', [3075, 6609], 'Cotte épineuse contre ceux qui te frappent, Épée dentelée chimico-punk contre les autres.'],
+    ['Beaucoup de contrôles', [3111, 3053], 'Sandales de Mercure pour la ténacité, Gage de Sterak pour le bouclier.'],
+    ['Ton équipe perd, il faut porter', [2510], 'Aube et crépuscule à la place de l\'objet 2 : dégâts hybrides et soin après chaque sort.'],
+  ];
+
+  document.getElementById('sheet').innerHTML = `
+  <section class="panel hero" style="--c:${color}">
+    <div class="vs">
+      ${img('c_' + c.id, c.name, 'enemy')}
+      <div>
+        <div class="sub">Shen contre</div>
+        <h2>${esc(c.name)}</h2>
+        <div class="tags">
+          <span class="tag cat">${esc(C.label)}</span>
+          <span class="tag">${DMG_LABEL[c.dmg]}</span>
+          ${c.heal ? '<span class="tag heal">Se soigne</span>' : ''}
+          ${c.new ? '<span class="tag">Nouveau : classement automatique</span>' : ''}
+        </div>
+      </div>
+    </div>
+    <div class="buildname">
+      <span class="label">${preview ? 'Aperçu' : 'Build conseillé'}</span>
+      <h3>${esc(B.name)}</h3>
+      <span class="bt">${esc(B.tag)}</span>
+    </div>
+    ${preview ? `<div class="preview">Tu regardes un autre build que celui conseillé. <button class="linkbtn" data-preview="">Revenir au build ${esc(D.builds[C.build].name)}</button></div>` : ''}
+    <p class="why">${esc(preview ? B.idea : C.why)}</p>
+    ${c.note ? `<p class="note"><b>Contre ${esc(c.name)} :</b> ${esc(c.note)}</p>` : ''}
+    ${!preview && altKey && altKey !== buildKey ? `<div class="suggest"><span><b>Alternative : ${esc(D.builds[altKey].name)}.</b> ${esc(D.altWhy[altKey] || D.builds[altKey].idea)}</span><button class="linkbtn" data-preview="${altKey === C.build ? '' : altKey}">Voir ce build</button></div>` : ''}
+    <div class="reclass">
+      <label for="reclass">Classé dans :</label>
+      <select id="reclass">${Object.entries(D.cats).map(([k, v]) => `<option value="${k}"${k === cat ? ' selected' : ''}>${esc(v.label)}</option>`).join('')}</select>
+      ${isOverridden ? '<button class="linkbtn" id="resetCat">Revenir au classement d\'origine</button>' : ''}
+    </div>
+  </section>
+  ${compoCard}
+
+  <div class="cards">
+    <section class="panel card">
+      <h3>Runes <span class="k">${esc(D.runes[R.runes[0]].name)}</span></h3>
+      <div class="tree">
+        <div class="treehead">${img('t_' + R.tree, D.runes[R.tree].name)}${esc(D.runes[R.tree].name)}</div>
+        <div class="rune-row">${R.runes.map((id, i) => rune(id, i === 0)).join('')}</div>
+      </div>
+      <div class="tree">
+        <div class="treehead">${img('t_' + R.sec, D.runes[R.sec].name)}${esc(D.runes[R.sec].name)}</div>
+        <div class="rune-row">${R.secRunes.map(id => rune(id)).join('')}</div>
+      </div>
+      <div class="shards">${R.shards.map(s => `<div class="shard">${img('s_' + s, D.shards[s])}${esc(D.shards[s])}</div>`).join('')}</div>
+      <details><summary>Voir l'effet de chaque rune</summary><ul>${allRunes.map(id => `<li><b>${esc(D.runes[id].name)}</b> : ${esc(D.runes[id].desc)}</li>`).join('')}</ul></details>
+    </section>
+
+    <section class="panel card">
+      <h3>Sorts et compétences</h3>
+      <div class="sums">
+        <div class="sum">${img('ss_SummonerFlash', D.sums.SummonerFlash)}${esc(D.sums.SummonerFlash)}</div>
+        <div class="sum">${img('ss_SummonerDot', D.sums.SummonerDot)}${esc(D.sums.SummonerDot)}</div>
+      </div>
+      <div class="prio" aria-label="Priorité : Q puis E puis W">
+        <span>Priorité :</span>
+        <span class="key">${img('sp_ShenQ', D.spells.ShenQ)}Q</span><span class="arrow">›</span>
+        <span class="key">${img('sp_ShenE', D.spells.ShenE)}E</span><span class="arrow">›</span>
+        <span class="key">${img('sp_ShenW', D.spells.ShenW)}W</span>
+        <span class="arrow">· R aux niveaux 6, 11 et 16</span>
+      </div>
+      <div class="levels-wrap"><table class="levels"><thead><tr><th></th>${[...LEVELS].map((_, i) => `<th scope="col">${i + 1}</th>`).join('')}</tr></thead><tbody>${levels}</tbody></table></div>
+      <div class="foot">Q ${esc(D.spells.ShenQ)} · W ${esc(D.spells.ShenW)} · E ${esc(D.spells.ShenE)} · R ${esc(D.spells.ShenR)}</div>
+    </section>
+
+    <section class="panel card span2">
+      <h3>Objets <span class="k">dans l'ordre d'achat</span></h3>
+      <div class="start">Départ : ${img('i_1054', D.items[1054].name)} ${esc(D.items[1054].name)} + ${img('i_2003', D.items[2003].name)} ${esc(D.items[2003].name)}</div>
+      <ol class="items">${items.map(x => `<li class="item${x.slot === 'BOOTS' ? ' boots' : ''}${x.team ? ' team' : ''}">${img('i_' + x.id, D.items[x.id].name)}<div><div class="nm">${esc(D.items[x.id].name)}${x.team ? '<span class="badge">Compo</span>' : ''}</div><div class="wy">${x.team ? 'Pour la compo : ' + esc(x.team) + '. ' : ''}${esc(D.items[x.id].why)}</div></div><span class="gd">${gold(D.items[x.id].gold)}</span></li>`).join('')}</ol>
+      ${healer && !items.some(x => x.id === healItem) ? `<div class="antiheal">${img('i_' + healItem, D.items[healItem].name)}<div><b>Anti-soin :</b> ${esc(healer.name)} se soigne beaucoup. Prends ${esc(D.items[healItem].name)} à la place de ton dernier objet, ou plus tôt si ${esc(healer.name)} devient impossible à tuer.</div></div>` : ''}
+      <div class="total"><span>Build complet (départ compris)</span><b>${gold(total)}</b></div>
+    </section>
+
+    <section class="panel card">
+      <h3>Conseils de matchup</h3>
+      <ul class="tips">${C.tips.map(t => `<li>${esc(t)}</li>`).join('')}</ul>
+    </section>
+
+    <section class="panel card">
+      <h3>Variantes situationnelles</h3>
+      <div class="variants">${variants.map(([cond, ids, txt]) => `<div class="variant"><div><div class="cond">${esc(cond)}</div><div class="txt">${esc(txt)}</div></div><div class="ic">${ids.map(id => img('i_' + id, D.items[id].name)).join('')}</div></div>`).join('')}</div>
+    </section>
+
+    <section class="panel card span2">
+      <h3>Comparer avec un autre build</h3>
+      <div class="others">${Object.entries(D.builds).map(([k, b]) => `<button class="chip" data-preview="${k === C.build ? '' : k}" aria-pressed="${k === buildKey}">${esc(b.name)} <span class="n">${esc(b.tag)}</span></button>`).join('')}</div>
+    </section>
+  </div>`;
+}
+
+function toggleTeam(id) {
+  const nm = byId[id].name;
+  if (id === current) { say(`${nm} est déjà ton adversaire de lane.`); return; }
+  if (team.includes(id)) { team = team.filter(x => x !== id); say(`${nm} retiré de la compo.`); }
+  else if (team.length >= 4) { say('La compo est complète : retire un champion avant d\'en ajouter un autre.'); return; }
+  else { team.push(id); say(team.length === 4 ? `${nm} ajouté. Compo complète.` : `${nm} ajouté (${team.length + 1}/5).`); }
+  saveTeam(); renderSlots(); renderGrid(); renderSheet();
+}
+
+function select(id, scroll) {
+  current = id; preview = null; store.set('last', id);
+  if (team.includes(id)) { team = team.filter(x => x !== id); saveTeam(); }
+  renderSlots(); renderGrid(); renderSheet();
+  if (scroll && window.matchMedia('(max-width: 959px)').matches) document.getElementById('sheet').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+document.getElementById('grid').addEventListener('click', e => {
+  const b = e.target.closest('.champ'); if (!b) return;
+  if (mode === 'team') toggleTeam(b.dataset.id); else select(b.dataset.id, true);
+});
+document.getElementById('modeLane').addEventListener('click', () => setMode('lane'));
+document.getElementById('modeTeam').addEventListener('click', () => setMode('team'));
+document.getElementById('slots').addEventListener('click', e => {
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { toggleTeam(rm.dataset.rm); return; }
+  if (e.target.closest('[data-addmode]')) setMode('team');
+});
+document.getElementById('filters').addEventListener('click', e => { const b = e.target.closest('[data-f]'); if (!b) return; filter = b.dataset.f; renderFilters(); renderGrid(); });
+document.getElementById('q').addEventListener('input', renderGrid);
+document.getElementById('q').addEventListener('keydown', e => { if (e.key === 'Enter') { const first = document.querySelector('#grid .champ'); if (first) select(first.dataset.id, true); } });
+document.getElementById('sheet').addEventListener('click', e => {
+  const p = e.target.closest('[data-preview]');
+  if (p) { preview = p.dataset.preview || null; renderSheet(); return; }
+  if (e.target.id === 'editTeam') {
+    setMode('team');
+    document.querySelector('.picker').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.getElementById('q').focus({ preventScroll: true });
+    return;
+  }
+  if (e.target.id === 'clearTeam') { team = []; saveTeam(); say('Compo vidée.'); renderSlots(); renderGrid(); renderSheet(); return; }
+  if (e.target.id === 'resetCat') { delete overrides[current]; store.set('overrides', overrides); preview = null; renderFilters(); renderGrid(); renderSheet(); }
+});
+document.getElementById('sheet').addEventListener('change', e => {
+  if (e.target.id !== 'reclass') return;
+  const c = byId[current];
+  if (e.target.value === c.cat) delete overrides[c.id]; else overrides[c.id] = e.target.value;
+  store.set('overrides', overrides); preview = null; renderFilters(); renderGrid(); renderSheet();
+});
+
+document.getElementById('shenIcon').src = IC.c_Shen;
+document.getElementById('patch').textContent = 'Patch ' + D.patch;
+document.getElementById('patch2').textContent = D.patch + ' (' + D.version + ')';
+renderFilters(); renderSlots(); renderGrid(); renderSheet();
+
+// Hors ligne et mises à jour : le service worker garde une copie de l'appli.
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>

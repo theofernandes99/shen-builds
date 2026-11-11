@@ -1,0 +1,81 @@
+# Construit l'appli et la publie sur GitHub Pages.
+# - à chaque modification envoyée sur la branche main ;
+# - chaque jour à 7 h 23 (heure de Paris en hiver) : si Riot a sorti un nouveau patch,
+#   le fichier PATCH est mis à jour et l'appli est reconstruite et republiée ;
+# - à la demande : onglet Actions > « Construire et publier » > Run workflow.
+name: Construire et publier
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '23 6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  construire:
+    runs-on: ubuntu-latest
+    outputs:
+      publier: ${{ steps.decision.outputs.publier }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Installer Pillow (compression des icônes)
+        run: pip install pillow==11.0.0
+
+      - name: Chercher un nouveau patch
+        id: patch
+        run: python build/check_patch.py
+
+      - name: Décider s'il faut publier
+        id: decision
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ] || [ "${{ steps.patch.outputs.changed }}" = "true" ]; then
+            echo "publier=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "publier=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Construire l'appli
+        if: steps.decision.outputs.publier == 'true'
+        run: python build/build.py
+
+      - name: Enregistrer le nouveau patch dans le dépôt
+        if: steps.patch.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add PATCH
+          git commit -m "Patch ${{ steps.patch.outputs.patch }} : mise à jour automatique"
+          git push
+
+      - name: Préparer la publication
+        if: steps.decision.outputs.publier == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  publier:
+    needs: construire
+    if: needs.construire.outputs.publier == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploiement.outputs.page_url }}
+    steps:
+      - name: Publier sur GitHub Pages
+        id: deploiement
+        uses: actions/deploy-pages@v4
