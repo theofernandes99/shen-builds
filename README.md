@@ -6,13 +6,15 @@ Appli qui conseille un build de Shen en top selon le champion adverse et toute l
 
 Sur iPhone : ouvre l'adresse dans Safari › **Partager** › **Sur l'écran d'accueil**. L'appli marche aussi sans connexion.
 
-## Ce qui se passe tout seul
+## Quand l'appli change
+
+Rien ne se met à jour tout seul : le patch ne change que quand tu le demandes.
 
 | Quand | Ce que fait GitHub |
 |---|---|
-| Chaque jour vers 7 h 20 | Regarde si Riot a sorti un nouveau patch. Si oui : met à jour le fichier `PATCH`, télécharge les nouvelles icônes, noms et prix, puis republie l'appli. |
-| À chaque modification d'un fichier | Reconstruit et republie l'appli (1 à 2 minutes). |
-| Nouveau champion dans le jeu | Il est classé automatiquement dans une catégorie et affiché « Nouveau : classement automatique ». Pense à vérifier son classement. |
+| Tu modifies un fichier | Reconstruit et republie l'appli (1 à 2 minutes), avec le patch indiqué dans le fichier `PATCH`. |
+| Tu demandes le nouveau patch | Onglet **Actions** › **Construire et publier** › **Run workflow** › coche **Passer au dernier patch de Riot** › **Run workflow**. GitHub récupère le dernier patch, met à jour icônes, noms et prix, enregistre le nouveau `PATCH` et republie. |
+| Un nouveau champion arrive avec ce patch | Il est classé automatiquement et affiché « Nouveau : classement automatique ». Pense à vérifier son classement. |
 
 L'appli installée sur ton téléphone récupère la nouvelle version au lancement suivant, dès qu'il y a du réseau.
 
@@ -34,7 +36,7 @@ Les objets et les runes sont désignés par leur numéro Riot (par exemple 3748 
 
 ## Relancer une publication à la main
 
-Onglet **Actions** › **Construire et publier** › **Run workflow**.
+Onglet **Actions** › **Construire et publier** › **Run workflow** (case non cochée : même patch, simple republication).
 
 ## Organisation du dépôt
 
@@ -42,12 +44,12 @@ Onglet **Actions** › **Construire et publier** › **Run workflow**.
 |---|---|
 | `build/data.py` | Le contenu : builds, catégories, classement des champions. |
 | `build/build.py` | Télécharge les données de Riot et fabrique l'appli dans `dist/`. |
-| `build/check_patch.py` | Compare le patch du dépôt au dernier patch de Riot. |
+| `build/check_patch.py` | Compare le patch du dépôt au dernier patch de Riot (lancé seulement sur demande). |
 | `app/index.template.html` | La page de l'appli (style et code). Les données y sont injectées à la construction. |
 | `app/sw.template.js` | Le service worker : mode hors ligne et mises à jour. |
 | `app/icons/` | Les icônes de l'appli. |
 | `PATCH` | La version des données Riot utilisée (ex. 16.22.1 = patch 26.22). |
-| `.github/workflows/publier.yml` | L'automatisation GitHub Actions. |
+| `.github/workflows/publier.yml` | La publication GitHub Actions (à chaque modification, ou à la demande). |
 
 ## Mentions
 
