@@ -18,13 +18,14 @@ CATS = {
   'brawler': {
     'label': "Bagarreurs à sorts (AD)",
     'short': "Bagarreurs",
-    'build': 'garde',
+    'build': 'standard',
+    'alt': 'garde',
     'swapRunes': {8444: 8473},
-    'why': "Leurs gros dégâts viennent de sorts, donc ton W protège moins. Tu joues sur leurs délais de récupération, avec Après-coup et Plaque d'os pour encaisser leurs combos.",
+    'why': "Ils gagnent les combats longs et leurs gros dégâts viennent de sorts, donc ton W protège moins. Poigne de l'immortel récompense l'inverse : un échange court qui te soigne, puis tu recules. Plaque d'os réduit leurs combos.",
     'tips': [
-      "Échange seulement quand leur sort principal est en recharge, sinon recule derrière ta vague.",
-      "Après-coup s'active quand ta provocation (E) touche : provoque, encaisse, puis l'explosion part.",
-      "Avant le niveau 6, joue des échanges courts : ils gagnent souvent les combats longs.",
+      "Échange court : attaque renforcée par Poigne, Q à travers eux, puis recule avant leur riposte.",
+      "Engage seulement quand leur sort principal est en recharge, sinon farme derrière ta vague.",
+      "Poigne se recharge toutes les 4 s de combat : un échange toutes les 4 s, pas un all-in.",
     ],
   },
   'poke': {
@@ -53,11 +54,12 @@ CATS = {
   'tank': {
     'label': "Tanks et gros sacs à PV",
     'short': "Tanks",
-    'build': 'cleaver',
-    'why': "Ton Assaut crépusculaire frappe en pourcentage des PV max : plus la cible est grosse, plus il fait mal. Couperet noir réduit leur armure et Abattage augmente tes dégâts contre les cibles à beaucoup de PV.",
+    'build': 'carry',
+    'alt': 'cleaver',
+    'why': "Les tanks ne te menacent pas en lane : tu peux te permettre un objet de dégâts de plus. Poigne de l'immortel grossit à chaque échange, et Aube et crépuscule applique une seconde fois les dégâts en % des PV max de ton Q.",
     'tips': [
+      "Échange souvent : chaque Poigne sur un champion te donne des PV pour toute la partie.",
       "Gagne la side lane : pousse plus vite qu'eux, puis ulte avant eux.",
-      "Ne cherche pas à les tuer en lane : vise les échanges où ton Q renforcé touche.",
       "En combat d'équipe, ignore-les et provoque leur carry.",
     ],
   },
@@ -124,6 +126,21 @@ BUILDS = {
     'items': [3084, 'BOOTS', 3073, 2502, 'DEF', 6665],
     'idea': "Empiler les PV, provoquer pour déclencher Après-coup et garder l'ulti pour ton carry.",
   },
+  'standard': {
+    'name': "Standard méta", 'tag': "Poigne : échanges courts",
+    'tree': 8400, 'runes': [8437, 8401, 8444, 8451], 'sec': 8300, 'secRunes': [8345, 8410],
+    'shards': ['AttackSpeed', 'AdaptiveForce', 'HealthScaling'],
+    'items': [3748, 'BOOTS', 2510, 3075, 2504, 'DEF'],
+    'def': {'AD': 3143, 'AP': 3065, 'mixte': 6665},
+    'idea': "Le build le plus joué : Poigne de l'immortel pour des échanges courts qui te soignent, Aube et crépuscule pour appliquer deux fois les effets de ton Q, puis des objets tank.",
+  },
+  'carry': {
+    'name': "Carry hybride", 'tag': "Poigne : plus de dégâts",
+    'tree': 8400, 'runes': [8437, 8401, 8444, 8451], 'sec': 8300, 'secRunes': [8345, 8410],
+    'shards': ['AttackSpeed', 'AdaptiveForce', 'HealthScaling'],
+    'items': [3748, 'BOOTS', 2510, 2524, 'DEF', 6665],
+    'idea': "Un objet tank de moins pour beaucoup plus de dégâts : Aube et crépuscule double les effets de ton Q, et Flûtes de Bandle accélère ton équipe à chaque contrôle. À prendre aussi quand ton équipe perd.",
+  },
   'maraudeur': {
     'name': "Maraudeur", 'tag': "Poursuite et ulti fréquent",
     'tree': 8200, 'runes': [8230, 8224, 8210, 8236], 'sec': 8400, 'secRunes': [8401, 8451],
@@ -171,7 +188,8 @@ ITEM_WHY = {
   6610: "Ta première attaque sur un champion fait un critique et te soigne.",
   3084: "900 PV qui grossissent quand tu frappes un champion proche.",
   2502: "Toutes les 4 s de combat, dégâts autour de toi et soin.",
-  2510: "Après un sort, ton attaque inflige des dégâts magiques et te soigne.",
+  2510: "Après un sort, ta prochaine attaque inflige des dégâts magiques, te soigne et applique une 2e fois tes effets à l'impact (dont ton Q).",
+  2524: "Ralentir ou immobiliser un champion te donne de la vitesse, et de la vitesse d'attaque à tes alliés proches.",
   4401: "Résistance magique bonus après plusieurs sorts subis.",
   6609: "Tes dégâts physiques appliquent Hémorragie (anti-soin).",
 }
@@ -211,6 +229,8 @@ HEALERS = set("Aatrox Vladimir Warwick DrMundo Sylas Swain Fiora Olaf Illaoi Bri
 ALT_WHY = {
  'maraudeur': "Assaut du maraudeur te donne 48 % de vitesse après un gros combo : utile pour coller un champion mobile.",
  'coup': "Déluge de lames : trois coups quasi instantanés, pour une rafale encore plus rapide au contact.",
+ 'garde': "Après-coup et beaucoup de PV, si tu préfères encaisser leurs all-in plutôt qu'échanger court.",
+ 'cleaver': "Couperet noir et Armure sanguine : dégâts physiques et réduction d'armure, si leurs tanks empilent la résistance magique.",
 }
 
 # Notes propres à quelques matchups (tes matchups difficiles + classiques).

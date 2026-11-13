@@ -26,7 +26,7 @@ GitHub t'envoie un e-mail, et l'onglet **Actions** montre une croix rouge. Ouvre
 
 Tout le contenu est dans **`build/data.py`**. Sur GitHub : ouvre le fichier › icône crayon › modifie › **Commit changes**. L'appli se republie toute seule.
 
-- `BUILDS` : les 6 builds (runes, fragments, ordre des objets).
+- `BUILDS` : les 8 builds (runes, fragments, ordre des objets).
 - `CATS` : les 7 catégories d'adversaires, le build conseillé pour chacune, l'explication et les conseils.
 - `CLASS` : quel champion va dans quelle catégorie.
 - `NOTES` : les conseils propres à un champion (Fiora, Darius, Garen…).
